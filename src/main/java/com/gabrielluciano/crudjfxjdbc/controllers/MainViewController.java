@@ -3,6 +3,7 @@ package com.gabrielluciano.crudjfxjdbc.controllers;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.function.Consumer;
 
 import com.gabrielluciano.crudjfxjdbc.application.Main;
 import com.gabrielluciano.crudjfxjdbc.model.services.DepartmentService;
@@ -36,7 +37,10 @@ public class MainViewController implements Initializable {
 
     @FXML
     public void onMenuItemDepartmentAction() {
-        loadView2("/fxml/DepartmentList.fxml");
+        loadView("/fxml/DepartmentList.fxml", (DepartmentListController controller) -> {
+            controller.setDepartmentService(new DepartmentService());
+            controller.updateTableView();
+        });
     }
 
     @FXML
@@ -49,23 +53,11 @@ public class MainViewController implements Initializable {
     }
 
     private synchronized void loadView(String absoluteName) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(absoluteName));
-            VBox newVBox = loader.load();
-
-            Scene mainScene = Main.getMainScene();
-            VBox mainVBox = (VBox) ((ScrollPane) mainScene.getRoot()).getContent();
-
-            Node mainMenu = mainVBox.getChildren().get(0);
-            mainVBox.getChildren().clear();
-            mainVBox.getChildren().add(mainMenu);
-            mainVBox.getChildren().addAll(newVBox.getChildren());
-        } catch (IOException e) {
-            Alerts.showAlert("IO Exception", "Error loading view", e.getMessage(), AlertType.ERROR);
-        }
+        loadView(absoluteName, x -> {
+        });
     }
 
-    private synchronized void loadView2(String absoluteName) {
+    private synchronized <T> void loadView(String absoluteName, Consumer<T> initializingAction) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(absoluteName));
             VBox newVBox = loader.load();
@@ -78,11 +70,10 @@ public class MainViewController implements Initializable {
             mainVBox.getChildren().add(mainMenu);
             mainVBox.getChildren().addAll(newVBox.getChildren());
 
-            DepartmentListController controller = loader.getController();
-            controller.setDepartmentService(new DepartmentService());
-            controller.updateTableView();
+            initializingAction.accept(loader.getController());
         } catch (IOException e) {
             Alerts.showAlert("IO Exception", "Error loading view", e.getMessage(), AlertType.ERROR);
         }
     }
+
 }
