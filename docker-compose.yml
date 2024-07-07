@@ -1,0 +1,14 @@
+services:
+  mysql:
+    image: mysql:9.0.0
+    restart: always
+    environment: 
+      MYSQL_ROOT_PASSWORD: 12345
+      MYSQL_DATABASE: crudjfxjdbc
+    ports:
+      - 3306:3306
+    volumes:
+      - db:/var/lib/mysql
+
+volumes:
+  db:
