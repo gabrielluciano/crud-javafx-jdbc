@@ -12,6 +12,7 @@ import com.gabrielluciano.crudjfxjdbc.model.services.DepartmentService;
 import com.gabrielluciano.crudjfxjdbc.util.Alerts;
 import com.gabrielluciano.crudjfxjdbc.util.GUIUtils;
 
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -20,6 +21,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.Alert.AlertType;
@@ -40,6 +42,9 @@ public class DepartmentListController implements Initializable, DataChangeListen
 
     @FXML
     private TableColumn<Department, String> tableColumnName;
+
+    @FXML
+    private TableColumn<Department, Department> tableColumnEdit;
 
     @FXML
     private Button btNew;
@@ -69,12 +74,35 @@ public class DepartmentListController implements Initializable, DataChangeListen
         tableViewDepartment.prefHeightProperty().bind(stage.heightProperty());
     }
 
+    private void initEditButtons() {
+        tableColumnEdit.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(param.getValue()));
+        tableColumnEdit.setCellFactory(param -> new TableCell<Department, Department>() {
+            private final Button button = new Button("edit");
+
+            @Override
+            protected void updateItem(Department department, boolean empty) {
+                super.updateItem(department, empty);
+
+                if (department == null) {
+                    setGraphic(null);
+                    return;
+                }
+
+                setGraphic(button);
+                button.setOnAction(
+                        event -> createDialogForm(
+                                department, "/fxml/DepartmentForm.fxml", GUIUtils.currentStage(event)));
+            }
+        });
+    }
+
     public void updateTableView() {
         if (service == null)
             throw new IllegalStateException("Service was null");
         List<Department> list = service.findAll();
         obsList = FXCollections.observableArrayList(list);
         tableViewDepartment.setItems(obsList);
+        initEditButtons();
     }
 
     private void createDialogForm(Department department, String absoluteName, Stage parentStage) {
