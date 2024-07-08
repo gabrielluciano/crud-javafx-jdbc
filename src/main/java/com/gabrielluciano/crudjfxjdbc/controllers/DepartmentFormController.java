@@ -3,18 +3,27 @@ package com.gabrielluciano.crudjfxjdbc.controllers;
 import java.net.URL;
 import java.util.ResourceBundle;
 
+import com.gabrielluciano.crudjfxjdbc.db.DbException;
 import com.gabrielluciano.crudjfxjdbc.model.entities.Department;
+import com.gabrielluciano.crudjfxjdbc.model.services.DepartmentService;
+import com.gabrielluciano.crudjfxjdbc.util.Alerts;
 import com.gabrielluciano.crudjfxjdbc.util.Constraints;
+import com.gabrielluciano.crudjfxjdbc.util.GUIUtils;
+import com.gabrielluciano.crudjfxjdbc.util.NumberUtils;
 
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Alert.AlertType;
 
 public class DepartmentFormController implements Initializable {
 
     private Department entity;
+
+    private DepartmentService service;
 
     @FXML
     private TextField txtId;
@@ -35,14 +44,29 @@ public class DepartmentFormController implements Initializable {
         this.entity = entity;
     }
 
-    @FXML
-    public void onBtSaveAction() {
-        System.out.println("onBtSaveAction");
+    public void setDepartmentService(DepartmentService service) {
+        this.service = service;
     }
 
     @FXML
-    public void onBtCancelAction() {
-        System.out.println("onBtCancelAction");
+    public void onBtSaveAction(ActionEvent event) {
+        if (entity == null)
+            throw new IllegalStateException("Entity was null");
+        if (service == null)
+            throw new IllegalStateException("Service was null");
+
+        try {
+            entity = getFormData();
+            service.saveOrUpdate(entity);
+            GUIUtils.currentStage(event).close();
+        } catch (DbException e) {
+            Alerts.showAlert("Error saving object", null, e.getMessage(), AlertType.ERROR);
+        }
+    }
+
+    @FXML
+    public void onBtCancelAction(ActionEvent event) {
+        GUIUtils.currentStage(event).close();
     }
 
     @Override
@@ -61,4 +85,12 @@ public class DepartmentFormController implements Initializable {
         Constraints.setTextFieldInteger(txtId);
         Constraints.setTexgFieldMaxLength(txtName, 30);
     }
+
+    private Department getFormData() {
+        Department department = new Department();
+        department.setId(NumberUtils.tryParseToInt(txtId.getText()));
+        department.setName(txtName.getText());
+        return department;
+    }
+
 }
