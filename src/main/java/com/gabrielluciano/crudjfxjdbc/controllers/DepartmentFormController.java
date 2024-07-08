@@ -3,11 +3,14 @@ package com.gabrielluciano.crudjfxjdbc.controllers;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.Set;
 
 import com.gabrielluciano.crudjfxjdbc.db.DbException;
 import com.gabrielluciano.crudjfxjdbc.gui.listeners.DataChangeListener;
 import com.gabrielluciano.crudjfxjdbc.model.entities.Department;
+import com.gabrielluciano.crudjfxjdbc.model.exceptions.ValidationException;
 import com.gabrielluciano.crudjfxjdbc.model.services.DepartmentService;
 import com.gabrielluciano.crudjfxjdbc.util.Alerts;
 import com.gabrielluciano.crudjfxjdbc.util.Constraints;
@@ -17,10 +20,10 @@ import com.gabrielluciano.crudjfxjdbc.util.NumberUtils;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.control.Alert.AlertType;
 
 public class DepartmentFormController implements Initializable {
 
@@ -71,6 +74,8 @@ public class DepartmentFormController implements Initializable {
             GUIUtils.currentStage(event).close();
         } catch (DbException e) {
             Alerts.showAlert("Error saving object", null, e.getMessage(), AlertType.ERROR);
+        } catch (ValidationException e) {
+            setErrorMessages(e.getErrors());
         }
     }
 
@@ -82,6 +87,13 @@ public class DepartmentFormController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         initializeNodes();
+    }
+
+    public void setErrorMessages(Map<String, String> errors) {
+        Set<String> fields = errors.keySet();
+        if (fields.contains("name")) {
+            labelErrorName.setText(errors.get("name"));
+        }
     }
 
     public void updateFormData() {
@@ -98,8 +110,20 @@ public class DepartmentFormController implements Initializable {
 
     private Department getFormData() {
         Department department = new Department();
+
+        ValidationException exception = new ValidationException("Validation error");
+
         department.setId(NumberUtils.tryParseToInt(txtId.getText()));
+
+        if (txtName.getText() == null || txtName.getText().isBlank()) {
+            exception.addError("name", "Field can't be empty");
+        }
         department.setName(txtName.getText());
+
+        if (exception.getErrors().size() > 0) {
+            throw exception;
+        }
+
         return department;
     }
 
