@@ -1,9 +1,12 @@
 package com.gabrielluciano.crudjfxjdbc.controllers;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 
 import com.gabrielluciano.crudjfxjdbc.db.DbException;
+import com.gabrielluciano.crudjfxjdbc.gui.listeners.DataChangeListener;
 import com.gabrielluciano.crudjfxjdbc.model.entities.Department;
 import com.gabrielluciano.crudjfxjdbc.model.services.DepartmentService;
 import com.gabrielluciano.crudjfxjdbc.util.Alerts;
@@ -24,6 +27,8 @@ public class DepartmentFormController implements Initializable {
     private Department entity;
 
     private DepartmentService service;
+
+    private List<DataChangeListener> dataChangeListeners = new ArrayList<>();
 
     @FXML
     private TextField txtId;
@@ -48,6 +53,10 @@ public class DepartmentFormController implements Initializable {
         this.service = service;
     }
 
+    public void subscribeDataChangeListener(DataChangeListener listener) {
+        dataChangeListeners.add(listener);
+    }
+
     @FXML
     public void onBtSaveAction(ActionEvent event) {
         if (entity == null)
@@ -58,6 +67,7 @@ public class DepartmentFormController implements Initializable {
         try {
             entity = getFormData();
             service.saveOrUpdate(entity);
+            notifyDataChangeListeners();
             GUIUtils.currentStage(event).close();
         } catch (DbException e) {
             Alerts.showAlert("Error saving object", null, e.getMessage(), AlertType.ERROR);
@@ -93,4 +103,7 @@ public class DepartmentFormController implements Initializable {
         return department;
     }
 
+    private void notifyDataChangeListeners() {
+        dataChangeListeners.stream().forEach(DataChangeListener::onDataChanged);
+    }
 }
