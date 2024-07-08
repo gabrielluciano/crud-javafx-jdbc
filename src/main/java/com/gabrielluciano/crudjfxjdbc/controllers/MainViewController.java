@@ -7,6 +7,7 @@ import java.util.function.Consumer;
 
 import com.gabrielluciano.crudjfxjdbc.application.Main;
 import com.gabrielluciano.crudjfxjdbc.model.services.DepartmentService;
+import com.gabrielluciano.crudjfxjdbc.model.services.SellerService;
 import com.gabrielluciano.crudjfxjdbc.util.Alerts;
 
 import javafx.fxml.FXML;
@@ -32,7 +33,10 @@ public class MainViewController implements Initializable {
 
     @FXML
     public void onMenuItemSellerAction() {
-        System.out.println("onMenuItemSellerAction");
+        loadView("/fxml/SellerList.fxml", (SellerListController controller) -> {
+            controller.setSellerService(new SellerService());
+            controller.updateTableView();
+        });
     }
 
     @FXML
