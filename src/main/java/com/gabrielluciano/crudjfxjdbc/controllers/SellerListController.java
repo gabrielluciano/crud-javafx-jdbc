@@ -11,6 +11,7 @@ import com.gabrielluciano.crudjfxjdbc.application.Main;
 import com.gabrielluciano.crudjfxjdbc.db.DbException;
 import com.gabrielluciano.crudjfxjdbc.gui.listeners.DataChangeListener;
 import com.gabrielluciano.crudjfxjdbc.model.entities.Seller;
+import com.gabrielluciano.crudjfxjdbc.model.services.DepartmentService;
 import com.gabrielluciano.crudjfxjdbc.model.services.SellerService;
 import com.gabrielluciano.crudjfxjdbc.util.Alerts;
 import com.gabrielluciano.crudjfxjdbc.util.GUIUtils;
@@ -167,7 +168,8 @@ public class SellerListController implements Initializable, DataChangeListener {
             Pane pane = loader.load();
             SellerFormController controller = loader.getController();
             controller.setSeller(seller);
-            controller.setSellerService(new SellerService());
+            controller.setServices(new SellerService(), new DepartmentService());
+            controller.loadAssociatedObjects();
             controller.subscribeDataChangeListener(this);
             controller.updateFormData();
 
@@ -179,6 +181,7 @@ public class SellerListController implements Initializable, DataChangeListener {
             dialogStage.initModality(Modality.WINDOW_MODAL);
             dialogStage.showAndWait();
         } catch (IOException e) {
+            e.printStackTrace();
             Alerts.showAlert("IO Exception", "Error loading view", e.getMessage(),
                     AlertType.ERROR);
         }
